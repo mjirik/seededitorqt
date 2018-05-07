@@ -11,10 +11,10 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # http://packaging.python.org/en/latest/tutorial.html#version
-    version='0.0.0',
+    version='1.2.39',
     url='https://github.com//seededitorqt',
-    author='',
-    author_email='',
+    author='Vladmir Lukes ad Miroslav Jirik',
+    author_email='miroslav.jirik@gmail.com',
     license='MIT',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -40,7 +40,7 @@ setup(
         # 'Programming Language :: Python :: 3',
         # 'Programming Language :: Python :: 3.2',
         # 'Programming Language :: Python :: 3.3',
-        # 'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.6',
     ],
 
     # What does your project relate to?

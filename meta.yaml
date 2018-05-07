@@ -1,10 +1,10 @@
 package:
   name: seededitorqt
-  version: "0.0.0"
+  version: "1.2.39"
 
 source:
 # this is used for build from git hub
-  git_rev: 0.0.0
+  git_rev: 1.2.39
   git_url: https://github.com/mjirik/seededitorqt.git
 
 # this is used for pypi
@@ -35,11 +35,25 @@ requirements:
   build:
     - python
     - setuptools
+    - numpy
+    - scipy
+    - pyqt 4.11.*
+    - pydicom
+    - dill
+    - pywget
+    - scikit-learn
 
   run:
     - python
-    # - numpy
-    # - pyqt 4.11.*
+    - numpy
+    - scipy
+    - pyqt 4.11.*
+    - pydicom
+    - dill
+    - pywget
+    - pyyaml
+    - cython
+    - scikit-learn
 
 test:
   # Python imports
