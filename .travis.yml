@@ -54,7 +54,7 @@ install:
     - conda config --add channels luispedro
 
     - conda update --yes conda
-    - conda install --yes pip nose coverage
+    - conda install --yes pip nose coveralls
 #    - Install dependencies
     - conda install --yes --file requirements_conda.txt python=$CONDA_PYTHON_VERSION
 
