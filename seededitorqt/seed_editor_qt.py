@@ -952,7 +952,7 @@ class QTSeedEditor(QDialog):
             self.last_view_position[ii] =\
                 img.shape[VIEW_TABLE[ii][-1]] - viewpos - 1
 
-        self.actual_slice = self.last_view_position[self.actual_view]
+        self.actual_slice = int(self.last_view_position[self.actual_view])
 
         # set contours
         self.contours = contours
@@ -1218,7 +1218,7 @@ class QTSeedEditor(QDialog):
             self.slider_cw[key].setValue(value)
             self.slider_cw[key].label.setText('%s: %d' % (key.upper(), value))
             self.slice_box.setCW(value, key)
-            self.slice_box.updateSliceCW(self.img_aview[...,self.actual_slice])
+            self.slice_box.updateSliceCW(self.img_aview[...,int(self.actual_slice)])
 
 
     def changeC(self, value):
@@ -1228,7 +1228,7 @@ class QTSeedEditor(QDialog):
         self.changeCW(value, 'w')
 
     def setView(self, value):
-        self.last_view_position[self.actual_view] = self.actual_slice
+        self.last_view_position[self.actual_view] = int(self.actual_slice)
         # save seeds
         self.saveSliceSeeds()
         if self.seeds_modified:
@@ -1240,7 +1240,7 @@ class QTSeedEditor(QDialog):
 
         key = str(value)
         self.actual_view = key
-        self.actual_slice = self.last_view_position[key]
+        self.actual_slice = int(self.last_view_position[key])
 
         self.act_transposition = VIEW_TABLE[key]
         self.img_aview = self.img.transpose(self.act_transposition)
@@ -1248,7 +1248,7 @@ class QTSeedEditor(QDialog):
 
         if self.contours is not None:
             self.contours_aview = self.contours.transpose(self.act_transposition)
-            contours = self.contours_aview[...,self.actual_slice]
+            contours = self.contours_aview[...,int(self.actual_slice)]
 
         else:
             contours = None
