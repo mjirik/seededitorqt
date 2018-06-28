@@ -1266,7 +1266,7 @@ class QTSeedEditor(QDialog):
         self.slice_box.resizeSlice(new_slice_size=self.img_aview.shape[:-1],
                                    new_grid=mgrid)
 
-        self.slice_box.setSlice(self.img_aview[...,self.actual_slice],
+        self.slice_box.setSlice(self.img_aview[...,int(self.actual_slice)],
                                 self.seeds_aview[...,self.actual_slice],
                                 contours)
 
@@ -1327,7 +1327,7 @@ class QTSeedEditor(QDialog):
 
         for ii in VIEW_TABLE.keys():
             self.last_view_position[ii] = 0
-        self.actual_slice = 0
+        self.actual_slice = int(0)
 
         self.img = img
         self.img_aview = self.img.transpose(self.act_transposition)
