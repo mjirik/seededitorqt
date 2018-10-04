@@ -555,6 +555,10 @@ class SliceBox(QLabel):
             self.erase_region_button == False
 
     def resizeSlice(self, new_slice_size=None, new_grid=None):
+        logger.debug("resizeSlice " + str(new_slice_size) + str(new_grid))
+        # print("new slice size" , str(new_slice_size), str(new_grid),
+        #       str(self.slice_size), str(self.grid)
+        #       )
 
         if new_slice_size is not None:
             self.slice_size = new_slice_size
@@ -568,11 +572,13 @@ class SliceBox(QLabel):
         self.setPixmap(QPixmap.fromImage(self.image))
 
     def resizeEvent(self, event):
+        print("self.grid ", self.grid)
         new_height = self.height()
         new_grid = new_height / float(self.slice_size[1])
         mul = new_grid / self.grid[1]
 
         self.grid = np.array(self.grid) * mul
+        print("self.grid new", self.grid)
         self.resizeSlice()
         self.updateSlice()
 
