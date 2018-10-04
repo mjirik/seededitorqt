@@ -516,22 +516,40 @@ class SliceBox(QLabel):
                 int(pos.y() / self.grid[1]))
 
     # mouse events
+    def setSeedMark(self, button):
+        modifiers = PyQt4.QtGui.QApplication.keyboardModifiers()
+        shift_offset = 0
+        if modifiers == PyQt4.QtCore.Qt.ShiftModifier:
+            shift_offset = BOX_BUTTONS_SEED_SHIFT_OFFSET
+        elif modifiers == PyQt4.QtCore.Qt.ControlModifier:
+            # this make seed_mark = 0 when left button is pressed
+            shift_offset = -1
+
+        #     print('Control+Click')
+        # elif modifiers == (QtCore.Qt.ControlModifier |
+        #                    QtCore.Qt.ShiftModifier):
+        # print('Control+Shift+Click')
+
+        # this means
+        # 0 - Shift + LMB
+        # 1 - LMB
+        # 2 - RMB
+        # 3 - Ctrl + LMB
+        # 4 - Ctrl + RMB
+        self.seed_mark = self.box_buttons[button()] + shift_offset
+        if self.seed_mark == 1:
+            parent = self.parent()
+            self.seed_mark = parent.labels[parent.textFocusedLabel]
+            pass
+
+        pass
+
     def mousePressEvent(self, event):
         if event.button() in self.box_buttons:
+            #
             self.drawing = True
-            modifiers = PyQt4.QtGui.QApplication.keyboardModifiers()
-            shift_offset = 0
-            if modifiers == PyQt4.QtCore.Qt.ShiftModifier:
-                shift_offset = BOX_BUTTONS_SEED_SHIFT_OFFSET
-            elif modifiers == PyQt4.QtCore.Qt.ControlModifier:
-                # this make seed_mark = 0 when left button is pressed
-                shift_offset = -1
-
-            #     print('Control+Click')
-            # elif modifiers == (QtCore.Qt.ControlModifier |
-            #                    QtCore.Qt.ShiftModifier):
-            # print('Control+Shift+Click')
-            self.seed_mark = self.box_buttons[event.button()] + shift_offset
+            self.setSeedMark(event.button)
+            # fir
             self.last_position = self.gridPosition(event.pos())
 
         elif event.button() == Qt.MiddleButton:
@@ -547,7 +565,7 @@ class SliceBox(QLabel):
             self.drawSeeds(self.gridPosition(event.pos()))
             self.drawing = False
 
-        if event.button() == Qt.MiddleButton\
+        elif event.button() == Qt.MiddleButton\
           and self.erase_region_button == True:
             self.eraseRegion(self.gridPosition(event.pos()),
                              self.erase_mode)
@@ -765,14 +783,18 @@ class QTSeedEditor(QDialog):
         if mode == 'seed' or mode == 'crop'\
                 or mode == 'mask' or mode == 'draw':
 
-            combo_seed_label_options = ['all', '1', '2', '3', '4']
-            combo_seed_label= QComboBox(self)
+            combo_seed_label_options = list(self.labels.keys()) #['all', '1', '2', '3', '4']
+            combo_seed_label = QComboBox(self)
             combo_seed_label.activated[str].connect(self.changeFocusedLabel)
             combo_seed_label.addItems(combo_seed_label_options)
             self.changeFocusedLabel(combo_seed_label_options[combo_seed_label.currentIndex()])
             # vopts.append(QLabel('Label to delete:'))
             # vopts.append(combo_seed_label)
-            vmenu.append(QLabel('Label to delete:'))
+            csl_tooltip = "Used for drawing with LMB or to delete labels"
+            combo_seeds_label_label = QLabel('Label:')
+            combo_seeds_label_label.setToolTip(csl_tooltip)
+            # combo_seeds_label.setTooltip(csl_tooltip)
+            vmenu.append(combo_seeds_label_label)
             vmenu.append(combo_seed_label)
 
             btn_del = QPushButton("Del Slice Seeds", self)
@@ -919,6 +941,7 @@ class QTSeedEditor(QDialog):
                  button_text=None,
                  button_callback=None,
                  appmenu_text=None,
+                 labels=None,
                  ):
         """
         Initiate Editor
@@ -1007,6 +1030,7 @@ class QTSeedEditor(QDialog):
         self.seeds_aview = self.seeds.transpose(self.act_transposition)
         self.seeds_modified = False
 
+        self.setLabels(labels)
         self.initUI(self.img_aview.shape,
                     self.voxel_scale[np.array(self.act_transposition)],
                     600, mode,
@@ -1032,7 +1056,6 @@ class QTSeedEditor(QDialog):
 
         self.offset = np.zeros((3,), dtype=np.int16)
         # set what labels will be deleted by 'delete seeds' button
-        self.textFocusedLabel = "all"
 
     def showStatus(self, msg):
         self.status_bar.showMessage(QString(msg))
@@ -1498,7 +1521,7 @@ class QTSeedEditor(QDialog):
         logger.debug(self.textFocusedLabel)
 
     def deleteSliceSeeds(self, event):
-        if self.textFocusedLabel == 'all':
+        if self.textFocusedLabel == 'all eraser':
             self.seeds_aview[...,self.actual_slice] = 0
         else:
             # delete only seeds with specific label
@@ -1510,7 +1533,7 @@ class QTSeedEditor(QDialog):
         self.slice_box.updateSlice()
 
     def deleteSeedsInAllImage(self, event):
-        if self.textFocusedLabel == 'all':
+        if self.textFocusedLabel == 'all eraser':
             self.seeds_aview[...] = 0
         else:
             # delete only seeds with specific label
@@ -1562,6 +1585,20 @@ class QTSeedEditor(QDialog):
                 cri.append(slice(off, off + ii))
 
         return cri
+
+    def setLabels(self, labels=None, first_active=0):
+        if labels is None:
+            labels = {
+                "1": 1,
+                "2": 2,
+                "3": 3,
+                "4": 4,
+            }
+        # add eraser to menu
+        labels["all eraser"] = 0
+        self.labels = labels
+        self.textFocusedLabel = list(labels.keys())[first_active]
+        # self.labels_first_active = active
 
 
 # def old_int(x):
