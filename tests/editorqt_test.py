@@ -82,6 +82,18 @@ class SeedEditorQtTest(unittest.TestCase):
         se.exec_()
         # self.assertTrue(False)
 
+    @attr('interactive')
+    def test_show_editor_with_too_much_wide_data(self):
+        """
+        just run editor to see what is new
+        Returns:
+
+        """
+        app = QApplication(sys.argv)
+        data = (np.random.rand(30, 31, 150) * 100).astype(np.int)
+        data[15:40, 13:20, 10:18] += 50
+        se = seededitorqt.QTSeedEditor(data)
+        se.exec_()
     # @attr('interactive')
     def test_draw_seed_function(self):
         """

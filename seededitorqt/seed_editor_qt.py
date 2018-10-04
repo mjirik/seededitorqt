@@ -637,6 +637,24 @@ class QTSeedEditor(QDialog):
 
         return line
 
+    def __prepare_mgrid(self, shape, vscale, max_width, max_height):
+        grid = max_height / float(shape[1] * vscale[1])
+        mgrid1 = (grid * vscale[0], grid * vscale[1])
+        expected_im_size = shape[:-1] * vscale[:-1] * mgrid1
+
+        if expected_im_size[0] > max_width:
+            grid = max_width/ float(shape[0] * vscale[0])
+            mgrid0 = (grid * vscale[0], grid * vscale[1])
+            mgrid = mgrid0
+        else:
+            mgrid = mgrid1
+
+        expected_im_size = shape[:-1] * vscale[:-1] * mgrid
+        return mgrid
+
+
+
+
     def initUI(self, shape, vscale, height=600,
                mode='seed',
                button_text=None,
@@ -659,9 +677,11 @@ class QTSeedEditor(QDialog):
         """
 
         # picture
+
+        mgrid2 = self.__prepare_mgrid(shape, vscale, max_width=1000, max_height=height)
         grid = height / float(shape[1] * vscale[1])
         mgrid = (grid * vscale[0], grid * vscale[1])
-        self.slice_box = SliceBox(shape[:-1], mgrid,
+        self.slice_box = SliceBox(shape[:-1], mgrid2,
                                   mode)
         self.slice_box.setScrollFun(self.scrollSlices)
         self.connect(self.slice_box, SIGNAL('focus_slider'), self.focusSliceSlider)
