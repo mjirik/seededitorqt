@@ -221,6 +221,7 @@ def erase_reg(arr, p, val=0):
     idxs = np.where(labs == aval)
     arr[idxs] = val
 
+
 class SliceBox(QLabel):
     """
     Widget for marking reagions of interest in DICOM slices.
@@ -973,6 +974,7 @@ class QTSeedEditor(QDialog):
         "mask" mode. If none, default mask function is used.
         :param button_text: text on the button. Implemented for "mask" mode. If None, default text
         is used.
+        :param labels: dictionary with text key and int value
         """
 
         QDialog.__init__(self)
