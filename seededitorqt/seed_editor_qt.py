@@ -750,6 +750,9 @@ class QTSeedEditor(QDialog):
 
 
         self.slice_box.setMaskPoints(self.mask_points_tab[self.combo_dmask.currentIndex()])
+        # Set middle pencil as default (M. Jirik)
+        self.combo_dmask.setCurrentIndex(1)
+        #  -----mjirik---end------
 
         self.status_bar = QStatusBar()
 
@@ -779,11 +782,6 @@ class QTSeedEditor(QDialog):
             self.volume_label = QLabel('Volume:\n  unknown')
             appmenu.append(self.volume_label)
 
-            # Set middle pencil as default (M. Jirik)
-            self.combo_dmask.setCurrentIndex(1)
-            self.slice_box.setMaskPoints(
-                self.mask_points_tab[self.combo_dmask.currentIndex()])
-            #  -----mjirik---end------
 
         if mode == 'seed' or mode == 'crop'\
                 or mode == 'mask' or mode == 'draw':
@@ -905,7 +903,7 @@ class QTSeedEditor(QDialog):
         vbox_left.addWidget(self.slider_cw['w'].label)
         vbox_left.addWidget(self.slider_cw['w'])
         vbox_left.addWidget(self.get_line())
-        vbox_left.addWidget(QLabel('Drawing mask:'))
+        vbox_left.addWidget(QLabel('Drawing brush:'))
         vbox_left.addWidget(self.combo_dmask)
 
         for ii in vopts:
