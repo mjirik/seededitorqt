@@ -543,16 +543,28 @@ class SliceBox(QLabel):
         self.seed_mark = self.box_buttons[button()] + shift_offset
         if self.seed_mark == 1:
             parent = self.parent()
-            self.seed_mark = parent.labels[parent.textFocusedLabel]
+            self.seed_mark = parent.seeds_slab[parent.textFocusedSeedLabel]
 
-    def _pick_up_seed(self, grid_position):
+    def _pick_up_seed_label(self, grid_position):
 
         lp = grid_position
         xx_ii, yy_ii = lp
         linear_index = np.round(yy_ii * self.slice_size[0] + xx_ii).astype(np.int)
         picked_seed_value = self.seeds[linear_index]
-        parent = self.parent().change_focus_label(picked_seed_value)
+        parent = self.parent().change_focus_seed_label(picked_seed_value)
         # picked_seed_value = self.seeds.reshape(self.slice_size)[lp]
+
+    def _pick_up_segmentation_label(self, grid_position):
+
+        lp = grid_position
+        xx_ii, yy_ii = lp
+        linear_index = np.round(yy_ii * self.slice_size[0] + xx_ii).astype(np.int)
+        if self.contours is None:
+            picked_seed_value = None
+        else:
+            picked_seed_value = self.contours[linear_index]
+
+            parent = self.parent().change_focus_segmentation_label(picked_seed_value)
 
     def mousePressEvent(self, event):
         if event.button() in self.box_buttons:
@@ -565,7 +577,12 @@ class SliceBox(QLabel):
                 if event.button() == Qt.RightButton:
                     # pickup seed
                     self.drawing = False
-                    self._pick_up_seed(self.last_position)
+                    self._pick_up_seed_label(self.last_position)
+            elif modifiers == PyQt4.QtCore.Qt.AltModifier:
+                if event.button() == Qt.RightButton:
+                    # pickup seed
+                    self.drawing = False
+                    self._pick_up_segmentation_label(self.last_position)
             # fir
 
         elif event.button() == Qt.MiddleButton:
@@ -795,19 +812,34 @@ class QTSeedEditor(QDialog):
             self.volume_label = QLabel('Volume:\n  unknown')
             appmenu.append(self.volume_label)
 
-
         if mode == 'seed' or mode == 'crop'\
                 or mode == 'mask' or mode == 'draw':
+            # segmentation label
+            combo_segmentation_label_options = list(self.slab.keys()) #['all', '1', '2', '3', '4']
+            csl_tooltip = "Used for drawing with LMB or to delete labels"
+            self.combo_segmentation_label = QComboBox(self)
+            self.combo_segmentation_label.setToolTip(csl_tooltip)
+            self.combo_segmentation_label.addItems(combo_segmentation_label_options)
+            # self.__focus_seed_label_changed_by_gui(combo_segmentation_label_options[self.combo_segmentation_label.currentIndex()])
+            # self.combo_seed_label.currentIndexChanged[str].connect(self.__focus_seed_label_changed_by_gui)
+            combo_segmentation_label_label = QLabel('Segmentation label:')
+            combo_segmentation_label_label.setToolTip(csl_tooltip)
+            # combo_seeds_label.setTooltip(csl_tooltip)
+            vmenu.append(combo_segmentation_label_label)
+            vmenu.append(self.combo_segmentation_label)
 
-            combo_seed_label_options = list(self.labels.keys()) #['all', '1', '2', '3', '4']
+
+            # seed labels
+            combo_seed_label_options = list(self.seeds_slab.keys()) #['all', '1', '2', '3', '4']
+            csl_tooltip = "Used for drawing with LMB or to delete labels"
             self.combo_seed_label = QComboBox(self)
+            self.combo_seed_label.setToolTip(csl_tooltip)
             self.combo_seed_label.addItems(combo_seed_label_options)
-            self.__focus_label_changed_by_gui(combo_seed_label_options[self.combo_seed_label.currentIndex()])
-            self.combo_seed_label.currentIndexChanged[str].connect(self.__focus_label_changed_by_gui)
+            self.__focus_seed_label_changed_by_gui(combo_seed_label_options[self.combo_seed_label.currentIndex()])
+            self.combo_seed_label.currentIndexChanged[str].connect(self.__focus_seed_label_changed_by_gui)
             # vopts.append(QLabel('Label to delete:'))
             # vopts.append(combo_seed_label)
-            csl_tooltip = "Used for drawing with LMB or to delete labels"
-            combo_seeds_label_label = QLabel('Label:')
+            combo_seeds_label_label = QLabel('Seed label')
             combo_seeds_label_label.setToolTip(csl_tooltip)
             # combo_seeds_label.setTooltip(csl_tooltip)
             vmenu.append(combo_seeds_label_label)
@@ -979,7 +1011,8 @@ class QTSeedEditor(QDialog):
                  button_text=None,
                  button_callback=None,
                  appmenu_text=None,
-                 labels=None,
+                 seed_labels=None,
+                 slab=None,
                  ):
         """
         Initiate Editor
@@ -1011,7 +1044,8 @@ class QTSeedEditor(QDialog):
         "mask" mode. If none, default mask function is used.
         :param button_text: text on the button. Implemented for "mask" mode. If None, default text
         is used.
-        :param labels: dictionary with text key and int value
+        :param seed_labels: dictionary with text key and int value
+        :param slab: dictionary with text key and int value
         """
 
         QDialog.__init__(self)
@@ -1069,7 +1103,8 @@ class QTSeedEditor(QDialog):
         self.seeds_aview = self.seeds.transpose(self.act_transposition)
         self.seeds_modified = False
 
-        self.setLabels(labels)
+        self.set_labels(seed_labels)
+        self.set_slab(slab)
         self.initUI(self.img_aview.shape,
                     self.voxel_scale[np.array(self.act_transposition)],
                     600, mode,
@@ -1554,24 +1589,24 @@ class QTSeedEditor(QDialog):
         self.showStatus("Done")
 
     def deleteSliceSeeds(self, event):
-        if self.textFocusedLabel == 'all eraser':
+        if self.textFocusedSeedLabel == 'all eraser':
             self.seeds_aview[...,self.actual_slice] = 0
         else:
             # delete only seeds with specific label
             self.seeds_aview[
-                self.seeds_aview[...,self.actual_slice] == int(self.textFocusedLabel)
+                self.seeds_aview[...,self.actual_slice] == int(self.textFocusedSeedLabel)
                 ,self.actual_slice] = 0
 
         self.slice_box.setSlice(seeds=self.seeds_aview[...,self.actual_slice])
         self.slice_box.updateSlice()
 
     def deleteSeedsInAllImage(self, event):
-        if self.textFocusedLabel == 'all eraser':
+        if self.textFocusedSeedLabel == 'all eraser':
             self.seeds_aview[...] = 0
         else:
             # delete only seeds with specific label
             self.seeds_aview[
-                self.seeds_aview[...] == int(self.textFocusedLabel)
+                self.seeds_aview[...] == int(self.textFocusedSeedLabel)
                 ] = 0
 
         self.slice_box.setSlice(seeds=self.seeds_aview[...,self.actual_slice])
@@ -1619,7 +1654,7 @@ class QTSeedEditor(QDialog):
 
         return cri
 
-    def setLabels(self, labels=None, first_active=0):
+    def set_labels(self, labels=None, first_active=0):
         if labels is None:
             labels = {
                 "1": 1,
@@ -1629,23 +1664,44 @@ class QTSeedEditor(QDialog):
             }
         # add eraser to menu
         labels["all eraser"] = 0
-        self.labels = labels
-        self.textFocusedLabel = list(labels.keys())[first_active]
+        self.seeds_slab = labels
+        self.textFocusedSeedLabel = list(labels.keys())[first_active]
         # self.labels_first_active = active
 
-    def change_focus_label(self, label):
+    def change_focus_seed_label(self, label):
         if type(label) == str:
-            idx = list(self.labels.keys()).index(label)
+            idx = list(self.seeds_slab.keys()).index(label)
         else:
-            idx = list(self.labels.values()).index(label)
+            idx = list(self.seeds_slab.values()).index(label)
 
-        self.textFocusedLabel = list(self.labels.keys())[idx]
+        self.textFocusedSeedLabel = list(self.seeds_slab.keys())[idx]
         self.combo_seed_label.setCurrentIndex(idx)
 
-    def __focus_label_changed_by_gui(self, textlabel):
-        self.textFocusedLabel = textlabel
-        logger.debug(self.textFocusedLabel)
+    def __focus_seed_label_changed_by_gui(self, textlabel):
+        self.textFocusedSeedLabel = textlabel
+        logger.debug(self.textFocusedSeedLabel)
 
+    def set_slab(self, slab=None):
+        if slab is None:
+            slab = {
+                "0": 0,
+                "1": 1
+            }
+            # slab = {}
+            # un = np.unique(self.contours)
+            # for label in un:
+            #     slab[str(label)] = label
+
+        self.slab = slab
+
+    def change_focus_segmentation_label(self, label):
+        if type(label) == str:
+            idx = list(self.slab.keys()).index(label)
+        else:
+            idx = list(self.slab.values()).index(label)
+
+        # self.textFocusedSeedLabel = list(self.seeds_slab.keys())[idx]
+        self.combo_segmentation_label.setCurrentIndex(idx)
 
 
 # def old_int(x):
@@ -1742,6 +1798,7 @@ def main():
     pyed.exec_()
 
     # sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()

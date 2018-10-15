@@ -98,11 +98,40 @@ class SeedEditorQtTest(unittest.TestCase):
         se.slice_box.last_position = [8, 1]
         se.slice_box.drawSeeds([7, 5])
         # try to pick up seed from slice
-        se.slice_box._pick_up_seed([1, 3])
-        self.assertEqual(se.textFocusedLabel, "3", "Pickuped value")
+        se.slice_box._pick_up_seed_label([1, 3])
+        self.assertEqual(se.textFocusedSeedLabel, "3", "Pickuped value")
 
-        se.change_focus_label(2)
-        self.assertEqual(se.textFocusedLabel, "2", "Changed value")
+        se.change_focus_seed_label(2)
+        self.assertEqual(se.textFocusedSeedLabel, "2", "Changed value")
+        # se.exec_()
+
+    def test_show_draw_and_pickup_segmentation_label(self):
+        """
+        just run editor to see what is new
+        Returns:
+
+        """
+        app = QApplication(sys.argv)
+        data = (np.random.rand(30,31,32) * 100).astype(np.int)
+        data[15:40, 13:20, 10:18] += 50
+        segmentation = np.zeros_like(data)
+        segmentation[15:40, 13:20, 10:18] = 1
+        se = seededitorqt.QTSeedEditor(data, contours=segmentation)
+        se.selectSlice(20)
+        se.slice_box.seed_mark = 3 # seed 3
+        se.slice_box.last_position = [1, 3]
+        se.slice_box.drawSeeds([10, 5])
+        se.slice_box.seed_mark = 2 #left mouse button
+        se.slice_box.last_position = [8, 1]
+        se.slice_box.drawSeeds([7, 5])
+        # try to pick up seed from slice
+        se.slice_box._pick_up_segmentation_label([16, 16])
+        # self.assertEqual(se.textFocusedSeedLabel, "3", "Pickuped value")
+        self.assertEqual(se.combo_segmentation_label.currentIndex(), 1, "Picked up value")
+
+        se.change_focus_segmentation_label(0)
+
+        self.assertEqual(se.combo_segmentation_label.currentIndex(), 0, "Changed value")
         # se.exec_()
 
     @attr('interactive')

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+
+## 1.7.0
+
+* Pickup segmentation label
+
 ## 1.6.0
 
 * Pickup seeds
