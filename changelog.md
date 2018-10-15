@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+* Keyboard shortcut for change brush
 * Custom labels with selection from GUI added
 
 ## 1.3.0 

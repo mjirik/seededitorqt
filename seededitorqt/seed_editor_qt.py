@@ -28,6 +28,7 @@ from PyQt4.QtGui import QImage, QDialog,\
     QLabel, QPixmap, QPainter, qRgba,\
     QComboBox, QIcon, QStatusBar,\
     QHBoxLayout, QVBoxLayout, QFrame, QSizePolicy
+from PyQt4 import QtGui, QtCore
 
 import logging
 logger = logging.getLogger(__name__)
@@ -279,6 +280,7 @@ class SliceBox(QLabel):
         self.image = QImage(self.imagesize, QImage.Format_RGB32)
         self.setPixmap(QPixmap.fromImage(self.image))
         self.setScaledContents(True)
+
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -738,14 +740,16 @@ class QTSeedEditor(QDialog):
         self.btn_quit = QPushButton("Return", self)
         self.btn_quit.clicked.connect(self.quit)
 
-        combo_dmask = QComboBox(self)
-        combo_dmask.activated.connect(self.changeMask)
+        self.combo_dmask = QComboBox(self)
+        self.combo_dmask.setToolTip("Change brush size (B)")
+        # self.combo_dmask.activated.connect(self.changeMask)
+        self.combo_dmask.currentIndexChanged.connect(self.changeMask)
         self.mask_points_tab, aux = self.init_draw_mask(DRAW_MASK, mgrid)
         for icon, label in aux:
-            combo_dmask.addItem(icon, label)
+            self.combo_dmask.addItem(icon, label)
 
 
-        self.slice_box.setMaskPoints(self.mask_points_tab[combo_dmask.currentIndex()])
+        self.slice_box.setMaskPoints(self.mask_points_tab[self.combo_dmask.currentIndex()])
 
         self.status_bar = QStatusBar()
 
@@ -902,7 +906,7 @@ class QTSeedEditor(QDialog):
         vbox_left.addWidget(self.slider_cw['w'])
         vbox_left.addWidget(self.get_line())
         vbox_left.addWidget(QLabel('Drawing mask:'))
-        vbox_left.addWidget(combo_dmask)
+        vbox_left.addWidget(self.combo_dmask)
 
         for ii in vopts:
             vbox_left.addWidget(ii)
@@ -933,7 +937,20 @@ class QTSeedEditor(QDialog):
         self.setLayout(vbox)
 
         self.setWindowTitle('Segmentation Editor')
+        self.__init_keyboard_shortucuts()
         self.show()
+
+    def __init_keyboard_shortucuts(self):
+        self.connect(QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_B), self), QtCore.SIGNAL('activated()'),
+                     self.__key_change_brush)
+
+    def __key_change_brush(self):
+        idx = self.combo_dmask.currentIndex()
+        if idx < len(self.combo_dmask) - 1:
+            self.combo_dmask.setCurrentIndex(idx + 1)
+        else:
+            self.combo_dmask.setCurrentIndex(0)
+        print("Change brush")
 
     def __init__(self, img, viewPositions=None,
                  seeds=None, contours=None,

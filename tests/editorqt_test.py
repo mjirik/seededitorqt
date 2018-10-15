@@ -67,7 +67,6 @@ class SeedEditorQtTest(unittest.TestCase):
         if sys.version_info.major < 3:
             cls.assertCountEqual = cls.assertItemsEqual
 
-
     @attr('interactive')
     def test_show_editor(self):
         """
@@ -95,6 +94,7 @@ class SeedEditorQtTest(unittest.TestCase):
         se = seededitorqt.QTSeedEditor(data)
         se.exec_()
     # @attr('interactive')
+
     def test_draw_seed_function(self):
         """
         just run editor to see what is new
