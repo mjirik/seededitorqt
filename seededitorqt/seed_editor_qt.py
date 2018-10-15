@@ -787,10 +787,10 @@ class QTSeedEditor(QDialog):
                 or mode == 'mask' or mode == 'draw':
 
             combo_seed_label_options = list(self.labels.keys()) #['all', '1', '2', '3', '4']
-            combo_seed_label = QComboBox(self)
-            combo_seed_label.activated[str].connect(self.changeFocusedLabel)
-            combo_seed_label.addItems(combo_seed_label_options)
-            self.changeFocusedLabel(combo_seed_label_options[combo_seed_label.currentIndex()])
+            self.combo_seed_label = QComboBox(self)
+            self.combo_seed_label.addItems(combo_seed_label_options)
+            self.changeFocusedLabel(combo_seed_label_options[self.combo_seed_label.currentIndex()])
+            self.combo_seed_label.currentIndexChanged[str].connect(self.changeFocusedLabel)
             # vopts.append(QLabel('Label to delete:'))
             # vopts.append(combo_seed_label)
             csl_tooltip = "Used for drawing with LMB or to delete labels"
@@ -798,7 +798,7 @@ class QTSeedEditor(QDialog):
             combo_seeds_label_label.setToolTip(csl_tooltip)
             # combo_seeds_label.setTooltip(csl_tooltip)
             vmenu.append(combo_seeds_label_label)
-            vmenu.append(combo_seed_label)
+            vmenu.append(self.combo_seed_label)
 
             btn_del = QPushButton("Del Slice Seeds", self)
             btn_del.clicked.connect(self.deleteSliceSeeds)
@@ -941,6 +941,8 @@ class QTSeedEditor(QDialog):
     def __init_keyboard_shortucuts(self):
         self.connect(QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_B), self), QtCore.SIGNAL('activated()'),
                      self.__key_change_brush)
+        self.connect(QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_L), self), QtCore.SIGNAL('activated()'),
+                     self.__key_change_label)
 
     def __key_change_brush(self):
         idx = self.combo_dmask.currentIndex()
@@ -948,7 +950,14 @@ class QTSeedEditor(QDialog):
             self.combo_dmask.setCurrentIndex(idx + 1)
         else:
             self.combo_dmask.setCurrentIndex(0)
-        print("Change brush")
+
+    def __key_change_label(self):
+        idx = self.combo_seed_label.currentIndex()
+        if idx < len(self.combo_seed_label) - 1:
+            self.combo_seed_label.setCurrentIndex(idx + 1)
+        else:
+            self.combo_seed_label.setCurrentIndex(0)
+
 
     def __init__(self, img, viewPositions=None,
                  seeds=None, contours=None,
