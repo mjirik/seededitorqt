@@ -780,9 +780,9 @@ class QTSeedEditor(QDialog):
             appmenu.append(self.volume_label)
 
             # Set middle pencil as default (M. Jirik)
-            combo_dmask.setCurrentIndex(1)
+            self.combo_dmask.setCurrentIndex(1)
             self.slice_box.setMaskPoints(
-                self.mask_points_tab[combo_dmask.currentIndex()])
+                self.mask_points_tab[self.combo_dmask.currentIndex()])
             #  -----mjirik---end------
 
         if mode == 'seed' or mode == 'crop'\
