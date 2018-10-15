@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.6.0
+
+* Pickup seeds
+
 ## 1.5.0
 
 * Keyboard shortcut for change label
