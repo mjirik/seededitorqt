@@ -623,13 +623,13 @@ class SliceBox(QLabel):
         self.setPixmap(QPixmap.fromImage(self.image))
 
     def resizeEvent(self, event):
-        print("self.grid ", self.grid)
+        # print("self.grid ", self.grid)
         new_height = self.height()
         new_grid = new_height / float(self.slice_size[1])
         mul = new_grid / self.grid[1]
 
         self.grid = np.array(self.grid) * mul
-        print("self.grid new", self.grid)
+        # print("self.grid new", self.grid)
         self.resizeSlice()
         self.updateSlice()
 
