@@ -1669,6 +1669,7 @@ class QTSeedEditor(QDialog):
         # self.labels_first_active = active
 
     def change_focus_seed_label(self, label):
+        logger.debug("picked value {} {}".format(label, type(label)))
         if type(label) == str:
             idx = list(self.seeds_slab.keys()).index(label)
         else:
@@ -1692,9 +1693,13 @@ class QTSeedEditor(QDialog):
             # for label in un:
             #     slab[str(label)] = label
 
+        if sys.version_info[0] <3:
+            from collections import OrderedDict
+            slab = OrderedDict(sorted(slab.items(), key=lambda t: t[0]))
         self.slab = slab
 
     def change_focus_segmentation_label(self, label):
+        logger.debug("picked value {} {}".format(label, type(label)))
         if type(label) == str:
             idx = list(self.slab.keys()).index(label)
         else:
@@ -1702,6 +1707,7 @@ class QTSeedEditor(QDialog):
 
         # self.textFocusedSeedLabel = list(self.seeds_slab.keys())[idx]
         self.combo_segmentation_label.setCurrentIndex(idx)
+        logger.debug("picked idx {} {}".format(idx, type(idx)))
 
 
 # def old_int(x):

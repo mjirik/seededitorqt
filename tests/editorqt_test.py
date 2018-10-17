@@ -127,11 +127,15 @@ class SeedEditorQtTest(unittest.TestCase):
         # try to pick up seed from slice
         se.slice_box._pick_up_segmentation_label([16, 16])
         # self.assertEqual(se.textFocusedSeedLabel, "3", "Pickuped value")
-        self.assertEqual(se.combo_segmentation_label.currentIndex(), 1, "Picked up value")
+        idx = se.combo_segmentation_label.currentIndex()
+        logger.debug("idx {}".format(idx))
+        self.assertEqual(idx, 1, "Picked up value")
 
         se.change_focus_segmentation_label(0)
 
-        self.assertEqual(se.combo_segmentation_label.currentIndex(), 0, "Changed value")
+        idx = se.combo_segmentation_label.currentIndex()
+        logger.debug("idx {}".format(idx))
+        self.assertEqual(idx, 0, "Changed value")
         # se.exec_()
 
     @attr('interactive')
