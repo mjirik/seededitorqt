@@ -3,7 +3,7 @@
 ## Unreleased
 
 
-## 1.8.0
+## 1.9.0
 
 * Plugins moved to the top of the layout
 * Refractoring of plugin class name
