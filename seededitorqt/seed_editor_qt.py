@@ -8,6 +8,9 @@ Example:
 $ seed_editor_qp.py -f head.mat
 """
 
+import logging
+logger = logging.getLogger(__name__)
+
 # import unittest
 from optparse import OptionParser
 from scipy.io import loadmat
@@ -29,9 +32,6 @@ from PyQt4.QtGui import QImage, QDialog,\
     QComboBox, QIcon, QStatusBar,\
     QHBoxLayout, QVBoxLayout, QFrame, QSizePolicy
 from PyQt4 import QtGui, QtCore
-
-import logging
-logger = logging.getLogger(__name__)
 
 import math
 # BGRA order
@@ -545,17 +545,26 @@ class SliceBox(QLabel):
             parent = self.parent()
             self.seed_mark = parent.seeds_slab[parent.textFocusedSeedLabel]
 
-    def _pick_up_seed_label(self, grid_position):
+    def _get_intensity(self, grid_position):
+
+        lp = grid_position
+        actual_slice = self.parent().img_aview[...,int(self.parent().actual_slice)]
+
+        xx_ii, yy_ii = lp
+        # linear_index = np.round(yy_ii * self.slice_size[0] + xx_ii).astype(np.int)
+        intensity = actual_slice[xx_ii, yy_ii]
+        return intensity
+
+
+    def _get_seed_label(self, grid_position):
 
         lp = grid_position
         xx_ii, yy_ii = lp
         linear_index = np.round(yy_ii * self.slice_size[0] + xx_ii).astype(np.int)
         picked_seed_value = self.seeds[linear_index]
-        parent = self.parent().change_focus_seed_label(picked_seed_value)
-        # picked_seed_value = self.seeds.reshape(self.slice_size)[lp]
+        return picked_seed_value
 
-    def _pick_up_segmentation_label(self, grid_position):
-
+    def _get_segmentation_label(self, grid_position):
         lp = grid_position
         xx_ii, yy_ii = lp
         linear_index = np.round(yy_ii * self.slice_size[0] + xx_ii).astype(np.int)
@@ -563,10 +572,21 @@ class SliceBox(QLabel):
             picked_seed_value = None
         else:
             picked_seed_value = self.contours[linear_index]
+        return picked_seed_value
 
+    def _pick_up_seed_label(self, grid_position):
+        picked_seed_value = self._get_seed_label(grid_position)
+        parent = self.parent().change_focus_seed_label(picked_seed_value)
+        # picked_seed_value = self.seeds.reshape(self.slice_size)[lp]
+
+
+    def _pick_up_segmentation_label(self, grid_position):
+        picked_seed_value = self._get_segmentation_label(grid_position)
+        if picked_seed_value is not None:
             parent = self.parent().change_focus_segmentation_label(picked_seed_value)
 
     def mousePressEvent(self, event):
+        self.make_last_click_status(self.gridPosition(event.pos()))
         if event.button() in self.box_buttons:
             #
             self.drawing = True
@@ -604,6 +624,19 @@ class SliceBox(QLabel):
                              self.erase_mode)
 
             self.erase_region_button == False
+
+    def make_last_click_status(self, grid_pos):
+        slicen = self.parent().actual_slice
+        intensity = self._get_intensity(grid_pos)
+        seed_label = self._get_seed_label(grid_pos)
+        segm_label = self._get_segmentation_label(grid_pos)
+        self.parent().last_click_label.setText(
+            "{}, {}, {}\n{}, {}, {}".format(
+                slicen, grid_pos[0], grid_pos[1],
+                intensity, seed_label, segm_label
+            ))
+
+
 
     def resizeSlice(self, new_slice_size=None, new_grid=None):
         logger.debug("resizeSlice " + str(new_slice_size) + str(new_grid))
@@ -675,6 +708,137 @@ class QTSeedEditor(QDialog):
     DICOM viewer.
     """
 
+    def __init__(self, img, viewPositions=None,
+                 seeds=None, contours=None,
+                 mode='seed', modeFun=None,
+                 voxelSize=None, volume_unit='mm3',
+                 button_text=None,
+                 button_callback=None,
+                 appmenu_text=None,
+                 seed_labels=None,
+                 slab=None,
+                 ):
+        """
+        Initiate Editor
+
+        Parameters
+        ----------
+        :param img: array
+            DICOM data matrix.
+        :param actualSlice : int
+            Index of actual slice.
+        :param seeds : array
+            Seeds, user defined regions of interest.
+        :param contours : array
+            Computed segmentation.
+        :param mode : str
+            Editor modes:
+               'seed' - seed editor
+               'crop' - manual crop
+               'draw' - drawing
+               'mask' - mask region
+        :param modeFun : fun
+            Mode function invoked by user button.
+        :param voxelSize : tuple of float
+            voxel size [mm]
+        :param volume_unit : allow select output volume in mililiters or mm3
+            [mm, ml]
+        :param appmenu_text: text which is displayed in the right toolbar
+        :param button_callback: callback function used when button is clicked. Implemented in
+        "mask" mode. If none, default mask function is used.
+        :param button_text: text on the button. Implemented for "mask" mode. If None, default text
+        is used.
+        :param seed_labels: dictionary with text key and int value
+        :param slab: dictionary with text key and int value
+        """
+
+        QDialog.__init__(self)
+
+        if voxelSize is None:
+            voxelSize = [1, 1, 1]
+
+        self.BACKGROUND_NOMODEL_SEED_LABEL = 4
+        self.FOREGROUND_NOMODEL_SEED_LABEL = 3
+
+        self.mode = mode
+        self.mode_fun = modeFun
+
+        self.actual_view = 'axial'
+        self.act_transposition = VIEW_TABLE[self.actual_view]
+        self.img = img
+        self.img_aview = self.img.transpose(self.act_transposition)
+
+        self.volume_unit = volume_unit
+
+        self.last_view_position = {}
+        for jj, ii in enumerate(VIEW_TABLE.keys()):
+            if viewPositions is None:
+                viewpos = img.shape[VIEW_TABLE[ii][-1]] / 2
+
+            else:
+                viewpos = viewPositions[jj]
+
+            self.last_view_position[ii] = \
+                img.shape[VIEW_TABLE[ii][-1]] - viewpos - 1
+
+        self.actual_slice = int(self.last_view_position[self.actual_view])
+
+        # set contours
+        self.contours = contours
+        if self.contours is None:
+            self.contours_aview = None
+        else:
+            self.contours_aview = self.contours.transpose(self.act_transposition)
+
+        # masked data - has information about which data were removed
+        # 1 == enabled, 0 == deleted
+        # How to return:
+        #       editorDialog.exec_()
+        #       masked_data = editorDialog.masked
+        self.masked = np.ones(self.img.shape, np.int8)
+
+        self._update_voxelsize(voxelSize)
+        # set seeds
+        if seeds is None:
+            self.seeds = np.zeros(self.img.shape, np.int8)
+        else:
+            self.seeds = seeds
+
+        self.seeds_aview = self.seeds.transpose(self.act_transposition)
+        self.seeds_modified = False
+
+        self.set_labels(seed_labels)
+        self.set_slab(slab)
+        self.initUI(self.img_aview.shape,
+                    self.voxel_scale[np.array(self.act_transposition)],
+                    600, mode,
+                    button_text=button_text,
+                    button_callback=button_callback,
+                    appmenu_text=appmenu_text,
+                    )
+
+        if mode == 'draw':
+            self.seeds_orig = self.seeds.copy()
+            self.slice_box.setEraseFun(self.eraseVolume)
+
+        # set view window values C/W
+        lb = np.min(img)
+        self.img_min_val = lb
+        ub = np.max(img)
+        dul = np.double(ub) - np.double(lb)
+        self.cw_range = {'c': [lb, ub], 'w': [1, dul]}
+        self.slider_cw['c'].setRange(lb, ub)
+        self.slider_cw['w'].setRange(1, dul)
+        self.changeC(lb + dul / 2)
+        self.changeW(dul)
+
+        self.offset = np.zeros((3,), dtype=np.int16)
+        # set what labels will be deleted by 'delete seeds' button
+
+    def _update_voxelsize(self, voxelSize):
+        self.voxel_size = np.squeeze(np.asarray(voxelSize))
+        self.voxel_scale = self.voxel_size / float(np.min(self.voxel_size))
+        self.voxel_volume = np.prod(voxelSize)
 
     @staticmethod
     def get_line(mode='h'):
@@ -758,8 +922,12 @@ class QTSeedEditor(QDialog):
         self.slider_cw['w'].label = QLabel()
 
         self.view_label = QLabel('View size: %d x %d' % self.img_aview.shape[:-1])
-        self.voxel_label = QLabel('Voxel size [mm]:\n  %.2f x %.2f x %.2f'\
+        self.voxel_label = QLabel('%.2f x %.2f x %.2f [mm]'\
                                       % tuple(self.voxel_size[np.array(self.act_transposition)]))
+        self.voxel_label.setToolTip('Voxel size[mm]:\n  %.4f x %.4f x %.4f'\
+                                  % tuple(self.voxel_size[np.array(self.act_transposition)]))
+        self.last_click_label = QLabel('')
+        self.last_click_label.setToolTip("Position index\nIntensity, Seed label, Segmentation label")
 
         combo_view_options = list(VIEW_TABLE)
         combo_view = QComboBox(self)
@@ -932,13 +1100,15 @@ class QTSeedEditor(QDialog):
         hbox = QHBoxLayout()
         vbox = QVBoxLayout()
         vbox_left = QVBoxLayout()
-        vbox_app = QVBoxLayout()
+        self.vbox_app = QVBoxLayout()
 
         hbox.addWidget(self.slice_box)
         hbox.addWidget(self.slider)
         vbox_left.addWidget(self.slider.label)
         vbox_left.addWidget(self.view_label)
         vbox_left.addWidget(self.voxel_label)
+        # vbox_left.addWidget(QLabel())
+        vbox_left.addWidget(self.last_click_label)
         vbox_left.addWidget(QLabel())
         vbox_left.addWidget(QLabel('View plane:'))
         vbox_left.addWidget(combo_view)
@@ -963,17 +1133,17 @@ class QTSeedEditor(QDialog):
 
         for ii in appmenu:
             if ii is None:
-                vbox_app.addStretch(1)
+                self.vbox_app.addStretch(1)
 
             else:
-                vbox_app.addWidget(ii)
+                self.vbox_app.addWidget(ii)
 
-        vbox_app.addStretch(1)
-        vbox_app.addWidget(self.btn_quit)
+        self.vbox_app.addStretch(1)
+        self.vbox_app.addWidget(self.btn_quit)
 
         hbox.addLayout(vbox_left)
         hbox.addWidget(self.get_line('v'))
-        hbox.addLayout(vbox_app)
+        hbox.addLayout(self.vbox_app)
         vbox.addLayout(hbox)
         vbox.addWidget(self.status_bar)
         self.my_layout = vbox
@@ -1003,133 +1173,24 @@ class QTSeedEditor(QDialog):
         else:
             self.combo_seed_label.setCurrentIndex(0)
 
-
-    def __init__(self, img, viewPositions=None,
-                 seeds=None, contours=None,
-                 mode='seed', modeFun=None,
-                 voxelSize=[1,1,1], volume_unit='mm3',
-                 button_text=None,
-                 button_callback=None,
-                 appmenu_text=None,
-                 seed_labels=None,
-                 slab=None,
-                 ):
+    def addPlugin(self, widget):
         """
-        Initiate Editor
-
-        Parameters
-        ----------
-        :param img: array
-            DICOM data matrix.
-        :param actualSlice : int
-            Index of actual slice.
-        :param seeds : array
-            Seeds, user defined regions of interest.
-        :param contours : array
-            Computed segmentation.
-        :param mode : str
-            Editor modes:
-               'seed' - seed editor
-               'crop' - manual crop
-               'draw' - drawing
-               'mask' - mask region
-        :param modeFun : fun
-            Mode function invoked by user button.
-        :param voxelSize : tuple of float
-            voxel size [mm]
-        :param volume_unit : allow select output volume in mililiters or mm3
-            [mm, ml]
-        :param appmenu_text: text which is displayed in the right toolbar
-        :param button_callback: callback function used when button is clicked. Implemented in
-        "mask" mode. If none, default mask function is used.
-        :param button_text: text on the button. Implemented for "mask" mode. If None, default text
-        is used.
-        :param seed_labels: dictionary with text key and int value
-        :param slab: dictionary with text key and int value
+        Add QTSeedEditorWidget
+        :param widget:
+        :return:
         """
+        self.vbox_app.addWidget(widget)
+        widget.setRunCallback(self._update_from_plugin)
 
-        QDialog.__init__(self)
-
-        self.BACKGROUND_NOMODEL_SEED_LABEL = 4
-        self.FOREGROUND_NOMODEL_SEED_LABEL = 3
-
-        self.mode = mode
-        self.mode_fun = modeFun
-
-        self.actual_view = 'axial'
-        self.act_transposition = VIEW_TABLE[self.actual_view]
-        self.img = img
-        self.img_aview = self.img.transpose(self.act_transposition)
-
-        self.volume_unit = volume_unit
-
-        self.last_view_position = {}
-        for jj, ii in enumerate(VIEW_TABLE.keys()):
-            if viewPositions is None:
-                viewpos = img.shape[VIEW_TABLE[ii][-1]] / 2
-
-            else:
-                viewpos = viewPositions[jj]
-
-            self.last_view_position[ii] =\
-                img.shape[VIEW_TABLE[ii][-1]] - viewpos - 1
-
-        self.actual_slice = int(self.last_view_position[self.actual_view])
-
-        # set contours
-        self.contours = contours
-        if self.contours is None:
-            self.contours_aview = None
-        else:
-            self.contours_aview = self.contours.transpose(self.act_transposition)
-
-        # masked data - has information about which data were removed
-        # 1 == enabled, 0 == deleted
-        # How to return:
-        #       editorDialog.exec_()
-        #       masked_data = editorDialog.masked
-        self.masked = np.ones(self.img.shape, np.int8)
-
-        self.voxel_size = np.squeeze(np.asarray(voxelSize))
-        self.voxel_scale = self.voxel_size / float(np.min(self.voxel_size))
-        self.voxel_volume = np.prod(voxelSize)
-
-        # set seeds
-        if seeds is None:
-            self.seeds = np.zeros(self.img.shape, np.int8)
-        else:
+    def _update_from_plugin(self, widget, data3d, segmentation, seeds, voxelsize_mm):
+        if widget is not None:
+            self.img = data3d
+        if segmentation is not None:
+            self.contours = segmentation
+        if seeds is not None:
             self.seeds = seeds
-
-        self.seeds_aview = self.seeds.transpose(self.act_transposition)
-        self.seeds_modified = False
-
-        self.set_labels(seed_labels)
-        self.set_slab(slab)
-        self.initUI(self.img_aview.shape,
-                    self.voxel_scale[np.array(self.act_transposition)],
-                    600, mode,
-                    button_text=button_text,
-                    button_callback=button_callback,
-                    appmenu_text=appmenu_text,
-                    )
-
-        if mode == 'draw':
-            self.seeds_orig = self.seeds.copy()
-            self.slice_box.setEraseFun(self.eraseVolume)
-
-        # set view window values C/W
-        lb = np.min(img)
-        self.img_min_val = lb
-        ub = np.max(img)
-        dul = np.double(ub) - np.double(lb)
-        self.cw_range = {'c': [lb, ub], 'w': [1, dul]}
-        self.slider_cw['c'].setRange(lb, ub)
-        self.slider_cw['w'].setRange(1, dul)
-        self.changeC(lb + dul / 2)
-        self.changeW(dul)
-
-        self.offset = np.zeros((3,), dtype=np.int16)
-        # set what labels will be deleted by 'delete seeds' button
+        if voxelsize_mm is not None:
+            self._update_voxelsize(voxelsize_mm)
 
     def showStatus(self, msg):
         self.status_bar.showMessage(QString(msg))
