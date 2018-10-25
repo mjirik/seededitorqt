@@ -1,10 +1,10 @@
 package:
   name: seededitorqt
-  version: "1.7.0"
+  version: "1.9.0"
 
 source:
 # this is used for build from git hub
-  git_rev: 1.7.0
+  git_rev: 1.9.0
   git_url: https://github.com/mjirik/seededitorqt.git
 
 # this is used for pypi
