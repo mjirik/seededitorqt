@@ -22,6 +22,7 @@ class QTSeedEditorWidget(QtGui.QWidget):
         self.run_callback = None
         self.get_callback = None
         self.get_data_from_parent_callback = None
+        self.show_status_callback = None
 
         self.general_initUI()
 
@@ -35,6 +36,15 @@ class QTSeedEditorWidget(QtGui.QWidget):
         self.segmentation = segmentation
         self.seeds = seeds
         self.voxelsize_mm = voxelsize_mm
+
+    def setShowStatusCallback(self, show_status_callback):
+        self.show_status_callback = show_status_callback
+
+    def showStatus(self, msg):
+        if self.show_status_callback is not None:
+            self.show_status_callback(msg)
+        else:
+            logger.info(msg)
 
     def setGetDataFromParentCallback(self, get_data_from_parent_callback):
         """
