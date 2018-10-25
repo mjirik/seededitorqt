@@ -1107,6 +1107,7 @@ class QTSeedEditor(QDialog):
         vbox = QVBoxLayout()
         vbox_left = QVBoxLayout()
         self.vbox_app = QVBoxLayout()
+        self.vbox_plugins = QVBoxLayout()
 
         hbox.addWidget(self.slice_box)
         hbox.addWidget(self.slider)
@@ -1144,6 +1145,7 @@ class QTSeedEditor(QDialog):
             else:
                 self.vbox_app.addWidget(ii)
 
+        self.vbox_app.addLayout(self.vbox_plugins)
         self.vbox_app.addStretch(1)
         self.vbox_app.addWidget(self.btn_quit)
 
@@ -1187,7 +1189,7 @@ class QTSeedEditor(QDialog):
         """
         self.plugins.append(plugin)
         plugin.setData(self.img, self.contours, self.seeds, self.voxel_size)
-        self.vbox_app.addWidget(plugin)
+        self.vbox_plugins.addWidget(plugin)
         plugin.setRunCallback(self._update_from_plugin)
         plugin.setGetDataFromParentCallback(self._get_data)
         plugin.setShowStatusCallback(self.showStatus)

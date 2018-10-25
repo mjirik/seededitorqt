@@ -58,7 +58,9 @@ class SeedEditorQtTest(unittest.TestCase):
         data[15:40, 13:20, 10:18] += 50
         se = seededitorqt.QTSeedEditor(data)
         wg0 = seededitorqt.plugin.SampleThresholdPlugin()
+        wg1 = seededitorqt.plugin.SampleThresholdPlugin()
         se.addPlugin(wg0)
+        se.addPlugin(wg1)
         se.exec_()
         # self.assertTrue(False)
 

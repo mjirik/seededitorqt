@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 from PyQt4 import QtGui, QtCore
 import numpy as np
 
-class QTSeedEditorWidget(QtGui.QWidget):
+class QtSEdPlugin(QtGui.QWidget):
 
     def __init__(self):
-        super(QTSeedEditorWidget, self).__init__()
+        super(QtSEdPlugin, self).__init__()
 
         self.data3d = None
         self.segmentation = None
@@ -87,7 +87,7 @@ class QTSeedEditorWidget(QtGui.QWidget):
 
 
 
-class SampleThresholdPlugin(QTSeedEditorWidget):
+class SampleThresholdPlugin(QtSEdPlugin):
 
     def __init__(self):
         super(SampleThresholdPlugin, self).__init__()
