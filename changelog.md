@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 1.8.0
+
+* Show status callable from plugin
 
 ## 1.7.0
 
