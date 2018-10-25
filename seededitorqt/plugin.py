@@ -109,5 +109,6 @@ class SampleThresholdPlugin(QTSeedEditorWidget):
     def run(self):
         self.runInit()
         self.segmentation = self.data3d > self.slider.value()
+        self.showStatus("Value {}".format(self.slider.value()))
         self.runFinish()
 
