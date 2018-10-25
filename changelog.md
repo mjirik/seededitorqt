@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+
+## 1.8.0
+
+* Plugins moved to the top of the layout
+* Refractoring of plugin class name
+
 ## 1.8.0
 
 * Show status callable from plugin
