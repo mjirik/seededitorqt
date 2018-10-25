@@ -5,6 +5,7 @@
 
 ## 1.7.0
 
+* Plugin system introduced
 * Pickup segmentation label
 
 ## 1.6.0

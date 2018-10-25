@@ -520,7 +520,7 @@ class SliceBox(QLabel):
                 int(pos.y() / self.grid[1]))
 
     # mouse events
-    def setSeedMark(self, button):
+    def _setSeedMark(self, button):
         modifiers = PyQt4.QtGui.QApplication.keyboardModifiers()
         shift_offset = 0
         if modifiers == PyQt4.QtCore.Qt.ShiftModifier:
@@ -590,7 +590,7 @@ class SliceBox(QLabel):
         if event.button() in self.box_buttons:
             #
             self.drawing = True
-            self.setSeedMark(event.button)
+            self._setSeedMark(event.button)
             modifiers = PyQt4.QtGui.QApplication.keyboardModifiers()
             self.last_position = self.gridPosition(event.pos())
             if modifiers == PyQt4.QtCore.Qt.ControlModifier:
@@ -784,11 +784,7 @@ class QTSeedEditor(QDialog):
         self.actual_slice = int(self.last_view_position[self.actual_view])
 
         # set contours
-        self.contours = contours
-        if self.contours is None:
-            self.contours_aview = None
-        else:
-            self.contours_aview = self.contours.transpose(self.act_transposition)
+        self.set_contours(contours)
 
         # masked data - has information about which data were removed
         # 1 == enabled, 0 == deleted
@@ -797,14 +793,12 @@ class QTSeedEditor(QDialog):
         #       masked_data = editorDialog.masked
         self.masked = np.ones(self.img.shape, np.int8)
 
-        self._update_voxelsize(voxelSize)
-        # set seeds
+        self.set_voxelsize(voxelSize)
         if seeds is None:
-            self.seeds = np.zeros(self.img.shape, np.int8)
-        else:
-            self.seeds = seeds
+            seeds = np.zeros(self.img.shape, np.int8)
 
-        self.seeds_aview = self.seeds.transpose(self.act_transposition)
+        self.set_seeds(seeds)
+
         self.seeds_modified = False
 
         self.set_labels(seed_labels)
@@ -833,9 +827,21 @@ class QTSeedEditor(QDialog):
         self.changeW(dul)
 
         self.offset = np.zeros((3,), dtype=np.int16)
+        self.plugins = []
         # set what labels will be deleted by 'delete seeds' button
 
-    def _update_voxelsize(self, voxelSize):
+    def set_seeds(self, seeds):
+        self.seeds = seeds
+        self.seeds_aview = self.seeds.transpose(self.act_transposition)
+
+    def set_contours(self, contours):
+        self.contours = contours
+        if self.contours is None:
+            self.contours_aview = None
+        else:
+            self.contours_aview = self.contours.transpose(self.act_transposition)
+
+    def set_voxelsize(self, voxelSize):
         self.voxel_size = np.squeeze(np.asarray(voxelSize))
         self.voxel_scale = self.voxel_size / float(np.min(self.voxel_size))
         self.voxel_volume = np.prod(voxelSize)
@@ -1173,24 +1179,32 @@ class QTSeedEditor(QDialog):
         else:
             self.combo_seed_label.setCurrentIndex(0)
 
-    def addPlugin(self, widget):
+    def addPlugin(self, plugin):
         """
         Add QTSeedEditorWidget
-        :param widget:
+        :param plugin:
         :return:
         """
-        self.vbox_app.addWidget(widget)
-        widget.setRunCallback(self._update_from_plugin)
+        self.plugins.append(plugin)
+        plugin.setData(self.img, self.contours, self.seeds, self.voxel_size)
+        self.vbox_app.addWidget(plugin)
+        plugin.setRunCallback(self._update_from_plugin)
+        plugin.setGetDataFromParentCallback(self._get_data)
 
     def _update_from_plugin(self, widget, data3d, segmentation, seeds, voxelsize_mm):
         if widget is not None:
-            self.img = data3d
+            self.set_image(data3d)
+            # self.img = data3d
         if segmentation is not None:
-            self.contours = segmentation
+            self.set_contours(segmentation)
+            # self.contours = segmentation
         if seeds is not None:
-            self.seeds = seeds
+            self.set_seeds(seeds)
         if voxelsize_mm is not None:
-            self._update_voxelsize(voxelsize_mm)
+            self.set_voxelsize(voxelsize_mm)
+
+    def _get_data(self):
+        return self.img, self.contours, self.seeds, self.voxel_size
 
     def showStatus(self, msg):
         self.status_bar.showMessage(QString(msg))
@@ -1363,6 +1377,23 @@ class QTSeedEditor(QDialog):
                                 contours)
         self.actual_slice = int(value)
 
+    def _set_plugins_seeds(self):
+        # sometimes during init the seeds are None
+        # this is the way how to update the actual value
+        for plugin in self.plugins:
+            plugin.seeds = self.seeds
+
+    def _set_plugins_segmentation(self):
+        # sometimes during init the seeds are None
+        # this is the way how to update the actual value
+        for plugin in self.plugins:
+            plugin.segmentation = self.contours
+
+    def setSeeds(self, seeds):
+        self.seeds = seeds
+        self._set_plugins_seeds()
+
+
     def getSeeds(self):
         return self.seeds
 
@@ -1507,11 +1538,10 @@ class QTSeedEditor(QDialog):
 
         self.showStatus("Done")
 
-    def cropUpdate(self, img):
+    def set_image(self, img):
 
-        for ii in VIEW_TABLE.keys():
-            self.last_view_position[ii] = 0
-        self.actual_slice = int(0)
+
+        prev_shape = self.img_aview.shape
 
         self.img = img
         self.img_aview = self.img.transpose(self.act_transposition)
@@ -1522,6 +1552,14 @@ class QTSeedEditor(QDialog):
         self.seeds = np.zeros(self.img.shape, np.int8)
         self.seeds_aview = self.seeds.transpose(self.act_transposition)
         self.seeds_modified = False
+        self.n_slices = self.img_aview.shape[2]
+        if np.array_equal(self.img_aview.shape, prev_shape):
+            #do not reset actual slice position
+            pass
+        else:
+            for ii in VIEW_TABLE.keys():
+                self.last_view_position[ii] = 0
+            self.actual_slice = int(0)
 
         vscale = self.voxel_scale[np.array(self.act_transposition)]
         height = self.slice_box.height()
@@ -1531,12 +1569,12 @@ class QTSeedEditor(QDialog):
         self.slice_box.resizeSlice(new_slice_size=self.img_aview.shape[:-1],
                                    new_grid=mgrid)
 
+
         self.slice_box.setSlice(self.img_aview[...,self.actual_slice],
                                 self.seeds_aview[...,self.actual_slice],
                                 None)
 
         self.allow_select_slice = False
-        self.n_slices = self.img_aview.shape[2]
         self.slider.setValue(self.actual_slice + 1)
         self.slider.setRange(1, self.n_slices)
         self.allow_select_slice = True
@@ -1544,6 +1582,8 @@ class QTSeedEditor(QDialog):
         self.slider.label.setText('Slice: %d / %d' % (self.actual_slice + 1,
                                                       self.n_slices))
         self.view_label.setText('View size: %d x %d' % self.img_aview.shape[:-1])
+        self.selectSlice(self.actual_slice)
+        # self.slice_box.updateSlice()
 
     def getCropBounds(self, return_nzs=False, flat=False):
 
@@ -1598,7 +1638,7 @@ class QTSeedEditor(QDialog):
         else:
             self.showStatus('Region not selected!')
 
-        self.cropUpdate(self.img)
+        self.set_image(self.img)
 
     def seg_to_background_seeds(self, event):
         self.saveSliceSeeds()
