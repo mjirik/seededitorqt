@@ -1193,6 +1193,7 @@ class QTSeedEditor(QDialog):
         plugin.setRunCallback(self._update_from_plugin)
         plugin.setGetDataFromParentCallback(self._get_data)
         plugin.setShowStatusCallback(self.showStatus)
+        plugin.updateUI()
 
     def _update_from_plugin(self, widget, data3d, segmentation, seeds, voxelsize_mm):
         if widget is not None:
