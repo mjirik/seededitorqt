@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 1.10.0
+
+* Brush size can be set on init
 
 ## 1.9.0
 

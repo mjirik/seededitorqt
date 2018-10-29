@@ -717,6 +717,7 @@ class QTSeedEditor(QDialog):
                  appmenu_text=None,
                  seed_labels=None,
                  slab=None,
+                 init_brush_index=1
                  ):
         """
         Initiate Editor
@@ -809,6 +810,7 @@ class QTSeedEditor(QDialog):
                     button_text=button_text,
                     button_callback=button_callback,
                     appmenu_text=appmenu_text,
+                    init_brush_index=init_brush_index
                     )
 
         if mode == 'draw':
@@ -881,6 +883,7 @@ class QTSeedEditor(QDialog):
                button_text=None,
                button_callback=None,
                appmenu_text=None,
+               init_brush_index=1
                ):
         """
         Initialize UI.
@@ -955,7 +958,7 @@ class QTSeedEditor(QDialog):
 
         self.slice_box.setMaskPoints(self.mask_points_tab[self.combo_dmask.currentIndex()])
         # Set middle pencil as default (M. Jirik)
-        self.combo_dmask.setCurrentIndex(1)
+        self.combo_dmask.setCurrentIndex(init_brush_index)
         #  -----mjirik---end------
 
         self.status_bar = QStatusBar()
