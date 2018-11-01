@@ -1206,6 +1206,8 @@ class QTSeedEditor(QDialog):
             self.set_seeds(seeds)
         if voxelsize_mm is not None:
             self.set_voxelsize(voxelsize_mm)
+        # self.updateMaskRegion()
+        self.updateSlice()
 
     def _get_data(self):
         self.saveSliceSeeds()
@@ -1242,6 +1244,9 @@ class QTSeedEditor(QDialog):
 
         else:
             self.seeds_modified = False
+
+    def updateSlice(self):
+        self.selectSlice(self.actual_slice)
 
     def updateMaskRegion_btn(self):
         self.saveSliceSeeds()
