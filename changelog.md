@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.11.0
+
+* Update slice visualization on plugin run
+
 ## 1.10.0
 
 * Brush size can be set on init
