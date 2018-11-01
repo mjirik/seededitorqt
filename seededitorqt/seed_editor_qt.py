@@ -875,9 +875,6 @@ class QTSeedEditor(QDialog):
         expected_im_size = shape[:-1] * vscale[:-1] * mgrid
         return mgrid
 
-
-
-
     def initUI(self, shape, vscale, height=600,
                mode='seed',
                button_text=None,
@@ -1211,6 +1208,7 @@ class QTSeedEditor(QDialog):
             self.set_voxelsize(voxelsize_mm)
 
     def _get_data(self):
+        self.saveSliceSeeds()
         return self.img, self.contours, self.seeds, self.voxel_size
 
     def showStatus(self, msg):

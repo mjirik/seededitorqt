@@ -25,7 +25,7 @@ import numpy as np
 from PyQt4.QtGui import QApplication
 
 
-class SeedEditorQtTest(unittest.TestCase):
+class SeedEditorPluginTest(unittest.TestCase):
     # @classmethod
     # def setUpClass(cls):
     #     if sys.version_info.major < 3:
