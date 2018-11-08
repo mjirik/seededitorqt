@@ -1263,8 +1263,8 @@ class QTSeedEditor(QDialog):
                 self.showStatus("Not enough points (need >= 5)!")
 
             else:
-                # if not hasattr(self, "contours_old"):
-                #     self.contours_old=None
+                if not hasattr(self, "contours_old"):
+                    self.contours_old=None
                 points = np.transpose(nzs)
                 hull = Delaunay(points)
                 X, Y, Z = np.mgrid[cri[0], cri[1], cri[2]]
