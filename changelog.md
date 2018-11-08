@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.0
+
+* Draw seeds by convex area
+
 ## 1.11.0
 
 * Update slice visualization on plugin run
