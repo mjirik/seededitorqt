@@ -4,7 +4,7 @@
 
 ## 1.12.0
 
-* Draw seeds by convex area
+* New ability to select seeds by convex area
 
 ## 1.11.0
 
