@@ -967,7 +967,8 @@ class QTSeedEditor(QDialog):
         if mode == 'seed' and self.mode_fun is not None:
             btn_recalc = QPushButton("Recalculate", self)
             btn_recalc.clicked.connect(self.recalculate)
-            self.btn_save= QPushButton("Save seeds", self)
+            self.btn_save = QPushButton("Advanced seeds", self)
+            self.btn_save.setToolTip("Save/Load seeds for later use and use advanced seed drawing methods")
             self.btn_save.clicked.connect(self.saveload_seeds)
             btn_convex = QPushButton("Convex", self)
             btn_convex.clicked.connect(self.updateMaskRegion_btn)
@@ -1664,6 +1665,7 @@ class QTSeedEditor(QDialog):
         # import ipdb; ipdb.set_trace()
         self.seeds[(self.contours == 1) & (self.seeds < 3)] = self.BACKGROUND_NOMODEL_SEED_LABEL
         self.contours[...] = 0
+        self.updateSlice()
 
     def seg_to_foreground_seeds(self, event):
         self.saveSliceSeeds()
@@ -1673,23 +1675,26 @@ class QTSeedEditor(QDialog):
         # import ipdb; ipdb.set_trace()
         self.seeds[(self.contours == 1) & (self.seeds < 3)] = self.FOREGROUND_NOMODEL_SEED_LABEL
         self.contours[...] = 0
+        self.updateSlice()
 
     def saveload_seeds(self, event):
         if self.seeds_copy is None:
             self.seeds_copy = self.seeds.copy()
             self.seeds[...] = 0
+            self.contours[:] = 0
             # print "save"
             # from PyQt4.QtCore import pyqtRemoveInputHook
             # pyqtRemoveInputHook()
             # import ipdb; ipdb.set_trace()
-            self.btn_save.setText("Load seeds")
+            self.btn_save.setText("Simple seeds")
         else:
             # from PyQt4.QtCore import pyqtRemoveInputHook
             # pyqtRemoveInputHook()
             # import ipdb; ipdb.set_trace()
             self.seeds[self.seeds_copy > 0] = self.seeds_copy[self.seeds_copy > 0]
             self.seeds_copy = None
-            self.btn_save.setText("Save seeds")
+            self.btn_save.setText("Advanced seeds")
+        self.updateSlice()
 
 
     def recalculate(self, event):
