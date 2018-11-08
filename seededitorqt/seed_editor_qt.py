@@ -1263,6 +1263,8 @@ class QTSeedEditor(QDialog):
                 self.showStatus("Not enough points (need >= 5)!")
 
             else:
+                # if not hasattr(self, "contours_old"):
+                #     self.contours_old=None
                 points = np.transpose(nzs)
                 hull = Delaunay(points)
                 X, Y, Z = np.mgrid[cri[0], cri[1], cri[2]]
@@ -1714,7 +1716,14 @@ class QTSeedEditor(QDialog):
         self.slice_box.setSlice(seeds=self.seeds_aview[...,self.actual_slice])
         self.slice_box.updateSlice()
 
-    def deleteSeedsInAllImage(self, event):
+    def deleteSeedsInAllImage(self, event, force_yes=False):
+        if not force_yes:
+            reply = QtGui.QMessageBox.question(
+                self, 'Message', "Are you sure to delete selected seeds on all slices?",
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+
+            if reply == QtGui.QMessageBox.No:
+                return
         if self.textFocusedSeedLabel == 'all eraser':
             self.seeds_aview[...] = 0
         else:
