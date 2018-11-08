@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 1.12.0
+## 1.14.0
 
 * New ability to select seeds by convex area
 
