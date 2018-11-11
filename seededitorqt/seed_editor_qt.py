@@ -1681,7 +1681,8 @@ class QTSeedEditor(QDialog):
         if self.seeds_copy is None:
             self.seeds_copy = self.seeds.copy()
             self.seeds[...] = 0
-            self.contours[:] = 0
+            if self.contours is not None:
+                self.contours[:] = 0
             # print "save"
             # from PyQt4.QtCore import pyqtRemoveInputHook
             # pyqtRemoveInputHook()
