@@ -40,7 +40,7 @@ requirements:
     - pyqt 4.11.*
     - pydicom
     - dill
-    - pywget
+#    - pywget
     - scikit-learn
 
   run:
@@ -50,8 +50,8 @@ requirements:
     - pyqt 4.11.*
     - pydicom
     - dill
-    - pywget
-    - pyyaml
+#    - pywget
+#    - pyyaml
     - cython
     - scikit-learn
 
