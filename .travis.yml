@@ -63,6 +63,6 @@ install:
 # command to run tests
 #script: nosetests --with-coverage --cover-package=seededitorqt
 script:
-  - python -m pytest --cov={name}/
+  - python -m pytest --cov={seededitorqt}/
 after_success:
     - coveralls
