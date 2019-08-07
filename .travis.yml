@@ -56,11 +56,13 @@ install:
     - conda config --add channels luispedro
 
     - conda update --yes conda
-    - conda install --yes pip nose coveralls
 #    - Install dependencies
     - conda install --yes --file requirements_conda.txt python=$CONDA_PYTHON_VERSION
+    - conda install --yes pip pytest coveralls pytest-cov
 
 # command to run tests
-script: nosetests --with-coverage --cover-package=seededitorqt
+#script: nosetests --with-coverage --cover-package=seededitorqt
+script:
+  - python -m pytest --cov={name}/
 after_success:
     - coveralls
