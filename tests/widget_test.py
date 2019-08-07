@@ -1,25 +1,32 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
+# import logging
+# logger = logging.getLogger(__name__)
+from loguru import logger
+import pytest
+import os.path
+
+path_to_script = os.path.dirname(os.path.abspath(__file__))
+
 from __future__ import print_function
 
 # import funkcí z jiného adresáře
 import sys
-import os.path
 import unittest
 import scipy
 import numpy as np
-import logging
-
-logger = logging.getLogger(__name__)
 path_to_script = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(path_to_script, "../src/"))
-from nose.plugins.attrib import attr
+# from nose.plugins.attrib import attr
 
 # from pysegbase import pycut
 import seededitorqt
 import seededitorqt.plugin
 import numpy as np
 from PyQt5.QtWidgets import QApplication
+
+import pytest
 
 
 class SeedEditorPluginTest(unittest.TestCase):
@@ -41,7 +48,9 @@ class SeedEditorPluginTest(unittest.TestCase):
         # se.exec_()
         # self.assertTrue(False)
 
-    @attr("interactive")
+    # @attr("interactive")
+    @pytest.mark.interactive
+    # @pytest.mark.slow
     def test_show_editor(self):
         """
         just run editor to see what is new

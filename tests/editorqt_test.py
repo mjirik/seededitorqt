@@ -13,7 +13,8 @@ import logging
 logger = logging.getLogger(__name__)
 path_to_script = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(path_to_script, "../src/"))
-from nose.plugins.attrib import attr
+# from nose.plugins.attrib import attr
+import pytest
 
 # from pysegbase import pycut
 import seededitorqt
@@ -56,13 +57,15 @@ from PyQt5.QtWidgets import QApplication
 #     voxelsize_mm = [5, 5, 5]
 #     metadata = {'voxelsize_mm': voxelsize_mm}
 #     return img3d, seeds, voxelsize_mm
+
 class SeedEditorQtTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if sys.version_info.major < 3:
             cls.assertCountEqual = cls.assertItemsEqual
 
-    @attr("interactive")
+    # @attr("interactive")
+    @pytest.mark.interactive
     def test_show_editor(self):
         """
         just run editor to see what is new
@@ -75,7 +78,8 @@ class SeedEditorQtTest(unittest.TestCase):
         se.exec_()
         # self.assertTrue(False)
 
-    @attr("interactive")
+    # @attr("interactive")
+    @pytest.mark.interactive
     def test_show_editor_in_seed_mode(self):
         """
         just run editor to see what is new
@@ -139,7 +143,8 @@ class SeedEditorQtTest(unittest.TestCase):
         self.assertEqual(idx, 0, "Changed value")
         # se.exec_()
 
-    @attr("interactive")
+    # @attr("interactive")
+    @pytest.mark.interactive
     def test_show_editor_with_too_much_wide_data(self):
         """
         just run editor to see what is new
