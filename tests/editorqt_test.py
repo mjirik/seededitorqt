@@ -1,6 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+# from __future__ import print_function
 
 # import funkcí z jiného adresáře
 import sys

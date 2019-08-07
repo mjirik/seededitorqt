@@ -3,13 +3,13 @@
 
 # import logging
 # logger = logging.getLogger(__name__)
+# from __future__ import print_function
 from loguru import logger
 import pytest
 import os.path
 
 path_to_script = os.path.dirname(os.path.abspath(__file__))
 
-from __future__ import print_function
 
 # import funkcí z jiného adresáře
 import sys
