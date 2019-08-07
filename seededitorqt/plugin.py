@@ -3,9 +3,10 @@
 """
 Sample widget for pyqt editor
 """
-import logging
-
-logger = logging.getLogger(__name__)
+from loguru import logger
+# import logging
+#
+# logger = logging.getLogger(__name__)
 from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 

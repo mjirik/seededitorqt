@@ -5,15 +5,14 @@ SeedEditor for organ segmentation
 Example:
 $ seed_editor_qp.py -f head.mat
 """
-import logging
 
+from loguru import logger
 # try:
 #     QString = unicode
 # except NameError:
 # Python 3
 # QString = str
 QString = str
-logger = logging.getLogger(__name__)
 # import unittest
 from optparse import OptionParser
 from scipy.io import loadmat

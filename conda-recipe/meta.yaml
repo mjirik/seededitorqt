@@ -43,6 +43,7 @@ requirements:
     - dill
 #    - pywget
     - scikit-learn
+    - loguru
 
   run:
     - python
@@ -56,6 +57,7 @@ requirements:
 #    - pyyaml
     - cython
     - scikit-learn
+    - loguru
 
 test:
   # Python imports
