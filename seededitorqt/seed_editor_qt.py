@@ -638,8 +638,9 @@ class SliceBox(QLabel):
 
     def wheelEvent(self, event):
         d = event.angleDelta().y()
-        if d > 0:
-            nd = d / abs(d)
+        absd = abs(d)
+        if absd > 0:
+            nd = d / absd
             if self.scroll_fun is not None:
                 self.scroll_fun(-nd)
 
