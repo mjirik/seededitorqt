@@ -223,7 +223,6 @@ BOX_BUTTONS_SEED_SHIFT_OFFSET = 2
 BOX_BUTTONS_DRAW = {Qt.LeftButton: 1, Qt.RightButton: 0}
 NEI_TAB = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]
 
-
 def erase_reg(arr, p, val=0):
     from scipy.ndimage.measurements import label
 
@@ -240,7 +239,7 @@ class SliceBox(QLabel):
 
     focus_slider = pyqtSignal()
 
-    def __init__(self, sliceSize, grid, mode="seeds"):
+    def __init__(self, sliceSize, grid, mode="seeds", seeds_colortable=None, contours_colortable=None, contourlines_colortable=None):
         """
         Initialize SliceBox.
         Parameters
@@ -273,13 +272,18 @@ class SliceBox(QLabel):
         self.contour_mode = "fill"
         self.scroll_fun = None
         if mode == "draw":
-            self.seeds_colortable = CONTOURS_COLORTABLE
             self.box_buttons = BOX_BUTTONS_DRAW
             self.mode_draw = True
         else:
-            self.seeds_colortable = SEEDS_COLORTABLE
             self.box_buttons = BOX_BUTTONS_SEED
             self.mode_draw = False
+        if seeds_colortable is None:
+            self.seeds_colortable = CONTOURS_COLORTABLE if self.mode_draw else SEEDS_COLORTABLE
+        else:
+            self.seeds_colortable = seeds_colortable
+        self.contourlines_colortable = contourlines_colortable if contourlines_colortable else CONTOURLINES_COLORTABLE
+        self.contours_colortable = contours_colortable if contours_colortable else CONTOURS_COLORTABLE
+
         self.image = QImage(self.imagesize, QImage.Format_RGB32)
         self.setPixmap(QPixmap.fromImage(self.image))
         self.setScaledContents(True)
@@ -370,7 +374,7 @@ class SliceBox(QLabel):
             idxsi = np.where(sl == ii)[0]
             aux[idxsi] = 1
             cnt = self.gen_contours(aux)
-            self.composeRgba(img, cnt, CONTOURLINES_COLORTABLE[ii - 1, ...])
+            self.composeRgba(img, cnt, self.contourlines_colortable[ii - 1, ...])
 
     def gen_contours(self, sl):
         sls = sl.reshape(self.slice_size, order="F")
@@ -423,10 +427,11 @@ class SliceBox(QLabel):
                 elif self.contour_mode == "contours":
                     self.get_contours(img, self.seeds)
             else:
-                self.overRgba(img, self.seeds, self.seeds_colortable)
+                # self.overRgba(img, self.seeds, self.seeds_colortable)
+                self.composeRgba(img, self.seeds, self.seeds_colortable)
         if self.contours is not None:
             if self.contour_mode == "fill":
-                self.composeRgba(img, self.contours, CONTOURS_COLORTABLE)
+                self.composeRgba(img, self.contours, self.contours_colortable)
             elif self.contour_mode == "contours":
                 self.get_contours(img, self.contours)
         image = QImage(
@@ -668,6 +673,9 @@ class QTSeedEditor(QDialog):
         seed_labels=None,
         slab=None,
         init_brush_index=1,
+        seeds_colortable=None,
+        contours_colortable=None,
+        contourlines_colortable=None
     ):
         """
         Initiate Editor
@@ -700,6 +708,9 @@ class QTSeedEditor(QDialog):
         is used.
         :param seed_labels: dictionary with text key and int value
         :param slab: dictionary with text key and int value
+        :param seeds_colortable: ndarray with dtype=np.uint8 and shape (256, 4)
+        :param contours_colortable: ndarray with dtype=np.uint8 and shape (256, 4)
+        :param contourlines_colortable: ndarray with dtype=np.uint8 and shape (256, 2, 4)
         """
         QDialog.__init__(self)
         if voxelSize is None:
@@ -745,6 +756,9 @@ class QTSeedEditor(QDialog):
             button_callback=button_callback,
             appmenu_text=appmenu_text,
             init_brush_index=init_brush_index,
+            seeds_colortable=seeds_colortable,
+            contours_colortable=contours_colortable,
+            contourlines_colortable=contourlines_colortable
         )
         if mode == "draw":
             self.seeds_orig = self.seeds.copy()
@@ -812,6 +826,9 @@ class QTSeedEditor(QDialog):
         button_callback=None,
         appmenu_text=None,
         init_brush_index=1,
+        seeds_colortable=None,
+        contours_colortable=None,
+        contourlines_colortable=None
     ):
         """
         Initialize UI.
@@ -830,7 +847,9 @@ class QTSeedEditor(QDialog):
         mgrid2 = self.__prepare_mgrid(shape, vscale, max_width=1000, max_height=height)
         grid = height / float(shape[1] * vscale[1])
         mgrid = (grid * vscale[0], grid * vscale[1])
-        self.slice_box = SliceBox(shape[:-1], mgrid2, mode)
+        self.slice_box = SliceBox(shape[:-1], mgrid2, mode,
+                                  seeds_colortable, contours_colortable, contourlines_colortable
+                                  )
         self.slice_box.setScrollFun(self.scrollSlices)
         self.slice_box.focus_slider.connect(self.focusSliceSlider)
         # sliders

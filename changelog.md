@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.
+
+* [Added] Control colormap of seeds and contours
+
 ## 1.14.0
 
 * New ability to select seeds by convex area

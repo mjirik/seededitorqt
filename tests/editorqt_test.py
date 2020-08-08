@@ -103,6 +103,20 @@ class SeedEditorQtTest(unittest.TestCase):
         # se.exec_()
         assert np.max(se.seeds) > 0
 
+    def test_show_editor_with_seeds_custom_colors(self):
+        """
+        just run editor to see what is new
+        Returns:
+        """
+        img, segm, seeds = self.make_data()
+        app = QApplication(sys.argv)
+        seeds_colortable = seededitorqt.seed_editor_qt.SEEDS_COLORTABLE.copy()
+        seeds_colortable[1] = [64, 255, 255, 60]
+        se = seededitorqt.QTSeedEditor(img, seeds=seeds, contours=segm.astype(np.uint8), seeds_colortable=seeds_colortable)
+        # se.exec_()
+        assert se.slice_box.seeds_colortable[1][0] == 64
+        assert np.max(se.seeds) > 0
+
     def test_show_draw_and_pickup_seed(self):
         """
         just run editor to see what is new
