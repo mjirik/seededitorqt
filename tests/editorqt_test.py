@@ -111,10 +111,16 @@ class SeedEditorQtTest(unittest.TestCase):
         img, segm, seeds = self.make_data()
         app = QApplication(sys.argv)
         seeds_colortable = seededitorqt.seed_editor_qt.SEEDS_COLORTABLE.copy()
-        seeds_colortable[1] = [64, 255, 255, 60]
+        # BGRA
+        seeds_colortable[0] = [255, 0, 0, 64]
+        seeds_colortable[1] = [0, 255, 0, 64]
+        seeds_colortable[2] = [0, 0, 255, 64]
+        seeds_colortable[3] = [0, 255, 255, 64]
+        seeds_colortable[4] = [255, 0, 255, 64]
+        seeds_colortable[5] = [255, 255, 0, 64]
         se = seededitorqt.QTSeedEditor(img, seeds=seeds, contours=segm.astype(np.uint8), seeds_colortable=seeds_colortable)
         # se.exec_()
-        assert se.slice_box.seeds_colortable[1][0] == 64
+        assert se.slice_box.seeds_colortable[1][1] == 255
         assert np.max(se.seeds) > 0
 
     def test_show_draw_and_pickup_seed(self):

@@ -708,9 +708,9 @@ class QTSeedEditor(QDialog):
         is used.
         :param seed_labels: dictionary with text key and int value
         :param slab: dictionary with text key and int value
-        :param seeds_colortable: ndarray with dtype=np.uint8 and shape (256, 4)
-        :param contours_colortable: ndarray with dtype=np.uint8 and shape (256, 4)
-        :param contourlines_colortable: ndarray with dtype=np.uint8 and shape (256, 2, 4)
+        :param seeds_colortable: ndarray with dtype=np.uint8 and shape (256, 4) [BGRA]
+        :param contours_colortable: ndarray with dtype=np.uint8 and shape (256, 4) [BGRA]
+        :param contourlines_colortable: ndarray with dtype=np.uint8 and shape (256, 2, 4) [BGRA]
         """
         QDialog.__init__(self)
         if voxelSize is None:
