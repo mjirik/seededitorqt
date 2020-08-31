@@ -719,7 +719,8 @@ class QTSeedEditor(QDialog):
         self.FOREGROUND_NOMODEL_SEED_LABEL = 3
         self.mode = mode
         self.mode_fun = modeFun
-        self.actual_view = "axial"
+        # self.actual_view = "axial"
+        self.actual_view = VIEW_TABLE.keys()[0]
         self.act_transposition = VIEW_TABLE[self.actual_view]
         self.img = img
         self.img_aview = self.img.transpose(self.act_transposition)
