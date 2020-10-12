@@ -675,7 +675,8 @@ class QTSeedEditor(QDialog):
         init_brush_index=1,
         seeds_colortable=None,
         contours_colortable=None,
-        contourlines_colortable=None
+        contourlines_colortable=None,
+        unit="mm",
     ):
         """
         Initiate Editor
@@ -720,7 +721,7 @@ class QTSeedEditor(QDialog):
         self.mode = mode
         self.mode_fun = modeFun
         # self.actual_view = "axial"
-        self.actual_view = VIEW_TABLE.keys()[0]
+        self.actual_view = list(VIEW_TABLE.keys())[0]
         self.act_transposition = VIEW_TABLE[self.actual_view]
         self.img = img
         self.img_aview = self.img.transpose(self.act_transposition)
@@ -748,6 +749,7 @@ class QTSeedEditor(QDialog):
         self.seeds_modified = False
         self.set_labels(seed_labels)
         self.set_slab(slab)
+        self.unit = unit
         self.initUI(
             self.img_aview.shape,
             self.voxel_scale[np.array(self.act_transposition)],
@@ -759,7 +761,8 @@ class QTSeedEditor(QDialog):
             init_brush_index=init_brush_index,
             seeds_colortable=seeds_colortable,
             contours_colortable=contours_colortable,
-            contourlines_colortable=contourlines_colortable
+            contourlines_colortable=contourlines_colortable,
+            unit=self.unit
         )
         if mode == "draw":
             self.seeds_orig = self.seeds.copy()
@@ -829,7 +832,8 @@ class QTSeedEditor(QDialog):
         init_brush_index=1,
         seeds_colortable=None,
         contours_colortable=None,
-        contourlines_colortable=None
+        contourlines_colortable=None,
+        unit=None
     ):
         """
         Initialize UI.
@@ -870,8 +874,10 @@ class QTSeedEditor(QDialog):
         self.slider_cw["w"].valueChanged.connect(self.changeW)
         self.slider_cw["w"].label = QLabel()
         self.view_label = QLabel("View size: %d x %d" % self.img_aview.shape[:-1])
+        if unit is None:
+            unit = self.unit
         self.voxel_label = QLabel(
-            "%.2f x %.2f x %.2f [mm]"
+            f"%.2f x %.2f x %.2f [{unit}]"
             % tuple(self.voxel_size[np.array(self.act_transposition)])
         )
         self.voxel_label.setToolTip(

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.1.0
+
+* [Fixed] Python3 uncompatibility fixed
+
 ## 1.15.
 
 * [Added] Control colormap of seeds and contours
