@@ -1,3 +1,3 @@
 from .seed_editor_qt import QTSeedEditor
 
-__version__ = "2.1.1"
+__version__ = "2.1.2"
