@@ -65,18 +65,6 @@ class SeedEditorQtTest(unittest.TestCase):
         if sys.version_info.major < 3:
             cls.assertCountEqual = cls.assertItemsEqual
 
-    @pytest.mark.interactive
-    def test_show_editor(self):
-        """
-        just run editor to see what is new
-        Returns:
-        """
-        app = QApplication(sys.argv)
-        data = (np.random.rand(30, 31, 32) * 100).astype(np.int)
-        data[15:40, 13:20, 10:18] += 50
-        se = seededitorqt.QTSeedEditor(data)
-        se.exec_()
-        # self.assertTrue(False)
 
     @pytest.mark.interactive
     def test_show_editor(self):
