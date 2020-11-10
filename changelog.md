@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 2.1.1
+## 2.1.3
 
 * [Fixed] Python3 uncompatibility fixed
 
