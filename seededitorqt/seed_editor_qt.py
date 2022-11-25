@@ -774,7 +774,7 @@ class QTSeedEditor(QDialog):
         dul = np.double(ub) - np.double(lb)
         self.cw_range = {"c": [lb, ub], "w": [1, dul]}
         self.slider_cw["c"].setRange(lb, ub)
-        self.slider_cw["w"].setRange(1, dul)
+        self.slider_cw["w"].setRange(1, int(dul))
         self.changeC(lb + dul / 2)
         self.changeW(dul)
         self.offset = np.zeros((3,), dtype=np.int16)
@@ -1187,7 +1187,7 @@ class QTSeedEditor(QDialog):
             img.fill(qRgba(255, 255, 255, 0))
             for ii in range(xx.shape[0]):
                 img.setPixel(xx[ii], yy[ii], qRgba(0, 0, 0, 255))
-            img = img.scaled(QSize(w * grid[0], h * grid[1]))
+            img = img.scaled(QSize(int(w * grid[0]), int(h * grid[1])))
             icon = QIcon(QPixmap.fromImage(img))
             mask_iconlabel.append((icon, label))
         return mask_points, mask_iconlabel
@@ -1323,7 +1323,7 @@ class QTSeedEditor(QDialog):
             contours = None
         else:
             contours = self.contours_aview[..., int(value)]
-        slider_val = self.n_slices - value
+        slider_val = int(self.n_slices - value)
         self.slider.setValue(slider_val)
         self.slider.label.setText("Slice: %d / %d" % (slider_val, self.n_slices))
         self.slice_box.setSlice(
@@ -1387,10 +1387,10 @@ class QTSeedEditor(QDialog):
             self.slice_box.updateSliceCW(self.img_aview[..., int(self.actual_slice)])
 
     def changeC(self, value):
-        self.changeCW(value, "c")
+        self.changeCW(int(value), "c")
 
     def changeW(self, value):
-        self.changeCW(value, "w")
+        self.changeCW(int(value), "w")
 
     def setView(self, value):
         self.last_view_position[self.actual_view] = int(self.actual_slice)
@@ -1430,7 +1430,7 @@ class QTSeedEditor(QDialog):
         )
         self.allow_select_slice = False
         self.n_slices = self.img_aview.shape[2]
-        slider_val = self.n_slices - self.actual_slice
+        slider_val = int(self.n_slices - self.actual_slice)
         self.slider.setRange(1, self.n_slices)
         self.slider.setValue(slider_val)
         self.allow_select_slice = True
