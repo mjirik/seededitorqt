@@ -308,7 +308,7 @@ class SliceBox(QLabel):
         ii = idx[np.where(idx >= 0)]
         xx_ii = xx[ii]  # .round().astype(np.int)
         yy_ii = yy[ii]  # .round().astype(np.int)
-        linear_index = (yy_ii * self.slice_size[0] + xx_ii).round().astype(np.int)
+        linear_index = (yy_ii * self.slice_size[0] + xx_ii).round().astype(int)
         self.seeds[linear_index] = self.seed_mark
 
     def drawLine(self, p0, p1):
@@ -518,14 +518,14 @@ class SliceBox(QLabel):
     def _get_seed_label(self, grid_position):
         lp = grid_position
         xx_ii, yy_ii = lp
-        linear_index = np.round(yy_ii * self.slice_size[0] + xx_ii).astype(np.int)
+        linear_index = np.round(yy_ii * self.slice_size[0] + xx_ii).astype(int)
         picked_seed_value = self.seeds[linear_index]
         return picked_seed_value
 
     def _get_segmentation_label(self, grid_position):
         lp = grid_position
         xx_ii, yy_ii = lp
-        linear_index = np.round(yy_ii * self.slice_size[0] + xx_ii).astype(np.int)
+        linear_index = np.round(yy_ii * self.slice_size[0] + xx_ii).astype(int)
         if self.contours is None:
             picked_seed_value = None
         else:
@@ -752,7 +752,7 @@ class QTSeedEditor(QDialog):
         self.unit = unit
         self.initUI(
             self.img_aview.shape,
-            self.voxel_scale[np.array(self.act_transposition)],
+            self.voxel_scale[np.array(self.act_transposition)].tolist(),
             600,
             mode,
             button_text=button_text,
@@ -771,11 +771,11 @@ class QTSeedEditor(QDialog):
         lb = np.min(img)
         self.img_min_val = lb
         ub = np.max(img)
-        dul = np.double(ub) - np.double(lb)
+        dul = ub - lb
         self.cw_range = {"c": [lb, ub], "w": [1, dul]}
         self.slider_cw["c"].setRange(lb, ub)
-        self.slider_cw["w"].setRange(1, int(dul))
-        self.changeC(lb + dul / 2)
+        self.slider_cw["w"].setRange(1, dul)
+        self.changeC(lb + dul // 2)
         self.changeW(dul)
         self.offset = np.zeros((3,), dtype=np.int16)
         self.plugins = []
@@ -810,14 +810,16 @@ class QTSeedEditor(QDialog):
     def __prepare_mgrid(self, shape, vscale, max_width, max_height):
         grid = max_height / float(shape[1] * vscale[1])
         mgrid1 = (grid * vscale[0], grid * vscale[1])
-        expected_im_size = shape[:-1] * vscale[:-1] * mgrid1
+        expected_im_size = (shape[0] * vscale[0] * mgrid1[0],
+                            shape[1] * vscale[1] * mgrid1[1])
         if expected_im_size[0] > max_width:
             grid = max_width / float(shape[0] * vscale[0])
             mgrid0 = (grid * vscale[0], grid * vscale[1])
             mgrid = mgrid0
         else:
             mgrid = mgrid1
-        expected_im_size = shape[:-1] * vscale[:-1] * mgrid
+        expected_im_size = (shape[0] * vscale[0] * mgrid[0],
+                            shape[1] * vscale[1] * mgrid[1])
         return mgrid
 
     def initUI(
